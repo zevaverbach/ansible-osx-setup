@@ -16,12 +16,7 @@
     - name: 'add custom homebrew repos'
       community.general.homebrew_tap:
         name: [
-          adoptopenjdk/openjdk,
-          fishtown-analytics/dbt,
-          heroku/brew,
           homebrew/cask-versions,
-          thoughtbot/formulae,
-          weaveworks/tap,
         ]
 
     - name: Install core packages via brew casks
@@ -29,142 +24,42 @@
         name: "{{ item }}"
       ignore_errors: yes
       with_items:
-        - 1password
-        - android-sdk
-        - android-studio
-        - datagrip
-        - docker
         - dropbox
-        - figma
         - google-chrome
-        - google-cloud-sdk
         - iterm2
         - kindle
-        - ngrok
         - slack
         - sublime-text
-        - telegram
-        - visual-studio-code
-        - vlc
         - zoom
-        - tuple
+        - discord
+        - moom
+        - signal
+        - spotify
+        - whatsapp
+        - alfred
+        - kitty
 
     - name: "Install homebrew packages"
       community.general.homebrew:
         name: [
-          'autoconf',
-          'automake',
-          'aws-iam-authenticator',
           'awscli',
-          'bfg',
-          'coreutils',
           'curl',
-          'dbt@0.18.0',
-          'direnv',
-          'dnsmasq',
           'fzf',
-          'gnu-time',
-          'gpg',
-          'heroku',
-          'htop',
-          'imagemagick@6',
-          'kubectx',
-          'kubernetes-cli',
-          'kubernetes-helm',
-          'libtool',
-          'libxslt',
-          'libyaml',
-          'mas',
-          'openssl' ,
-          'pkg-config',
           'postgresql',
-          'rcm',
           'readline',
           'redis',
           'sqlite3',
           'tmux',
-          'unixodbc',
-          'unzip',
-          'vim',
-          'watchman',
-          'xz',
+          'nvim',
+          'mas',
+          'bat',
+          'fish',
+          'neovim',
+          'gh',
           'yarn',
-          'zlib',
-          'zsh',
         ]
         state: present
         update_homebrew: yes
-
-    - name: "Install from Mac app store"
-      shell: mas install {{ item }}
-      with_items:
-        - 497799835 # xcode
-
-    - name: Get the path to ZSH
-      become: false
-      local_action: command which zsh
-      register: zsh_path
-
-    - name: "Ensure homebrew zsh is in allowed shells"
-      lineinfile:
-        path: /etc/shells
-        line: "{{ zsh_path.stdout }}"
-      become: true
-
-    - name: Install Oh My ZSH
-      shell: sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
-      args:
-        creates: "/Users/{{ lookup('env', 'USER') }}/.oh-my-zsh"
-
-    - name: Set ZSH as the default shell
-      shell: chsh -s $(which zsh) {{ lookup('env', 'USER') }}
-      become: true
-
-    - name: "Create a default ZSH configuration"
-      template:
-        src: templates/.zshrc.j2
-        dest: /Users/{{ lookup('env', 'USER') }}/.zshrc
-        owner: "{{ lookup('env', 'USER') }}"
-        force: yes
-
-    - name: Create a default VSCode configuration
-      template:
-        src: templates/vscode-settings.json.j2
-        dest: /Users/{{ lookup('env', 'USER') }}/Library/Application Support/Code/User/settings.json
-        owner: "{{ lookup('env', 'USER') }}"
-        force: yes
-
-    - name: Create a default VSCode keuybinding configuration
-      template:
-        src: templates/vscode-keybindings.json.j2
-        dest: /Users/{{ lookup('env', 'USER') }}/Library/Application Support/Code/User/keybindings.json
-        owner: "{{ lookup('env', 'USER') }}"
-        force: yes
-
-    # Add something which ensures path is set here
-    - name: Install VSCode extensions
-      shell: code --install-extension {{ item }}
-      with_items:
-        - apollographql.vscode-apollo
-        - bradlc.vscode-tailwindcss
-        - castwide.solargraph
-        - clinyong.vscode-css-modules
-        - eamodio.gitlens
-        - jakebecker.elixir-ls
-        - kaiwood.endwise
-        - karunamurti.haml
-        - ms-vscode-remote.vscode-remote-extensionpack
-        - ms-vscode.vscode-typescript-tslint-plugin
-        - msjsdiag.debugger-for-chrome
-        - rebornix.ruby
-        - richie5um2.vscode-sort-json
-        - Tyriar.sort-lines
-        - vscodevim.vim
-        - wholroyd.jinja
-        - wingrunr21.vscode-ruby
-        - xabikos.javascriptsnippets
-        - streetsidesoftware.code-spell-checker
-        - fabiospampinato.vscode-todo-plus
 
     - git:
         repo: https://github.com/asdf-vm/asdf.git
@@ -183,61 +78,36 @@
         source /Users/{{ lookup('env', 'USER') }}/.asdf/asdf.sh
         asdf plugin-add {{ item }} || exit 0
       with_items:
-        - ruby
-        - elixir
         - nodejs
         - python
-        - erlang
+        - rust
 
     - name: "Install Default Python"
       shell: |
         source /Users/{{ lookup('env', 'USER') }}/.asdf/asdf.sh
-        asdf install python 3.10.0
-        asdf global python 3.10.0
+        asdf install python 3.10.1
+        asdf global python 3.10.1
         pip3 install ansible
         asdf reshim python
 
-    - name: "Install Default Ruby"
+    - name: "Install default Rust"
       shell: |
         source /Users/{{ lookup('env', 'USER') }}/.asdf/asdf.sh
-        asdf install ruby 3.0.2
-        asdf global ruby 3.0.2
-        gem install bundler
-        gem install cocoapods
-        gem install rubocop
-        gem install solargraph
+        asdf install rust 1.58.1
+        asdf global rust 1.58.1
+        asdf reshim rust
 
     - name: "Install default node"
       shell: |
         source /Users/{{ lookup('env', 'USER') }}/.asdf/asdf.sh
         bash /Users/{{ lookup('env', 'USER') }}/.asdf/plugins/nodejs/bin/import-release-team-keyring
-        asdf install nodejs 16.4.2
-        asdf global nodejs 16.4.2
-
-    - name: "Install default erlang"
-      shell: |
-        source /Users/{{ lookup('env', 'USER') }}/.asdf/asdf.sh
-        asdf install erlang 24.0.2
-        asdf global  erlang 24.0.2
-
-
-    - name: "Install default elixir"
-      shell: |
-        source /Users/{{ lookup('env', 'USER') }}/.asdf/asdf.sh
-        asdf install elixir 1.12.3-otp-24
-        asdf global elixir 1.12.3-otp-24
-        mix local.hex --force
+        asdf install nodejs 17.4.0
+        asdf global nodejs 17.4.0
 
     - name: Install yarn packages
       shell: yarn global add {{ item }}
       with_items:
-        - react-native-cli
         - create-react-app
-        - apollo
-        - generator-generator
-        - yo
-        
     - name: re-generate bins now we've installed some yarn packages
       shell: asdf reshim nodejs
-        
 
